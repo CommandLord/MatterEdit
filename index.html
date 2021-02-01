@@ -162,26 +162,36 @@
         function linkIt() {
             var t = document.getElementById("t");
             var v = t.value;
-            v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\Z)/g, ":$1\n");
+            v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\z)\s?/g, ":$1\n");
             var l = v.split("\n");
             for (var i = 0; i < l.length; i++) {
                 var s = l[i];
-                if (s.match(/.+:\s*https?:\/\/.+/) != null) {
+                if (s.match(/.+:\s*https?:\/\/\S+\**/) != null) {
                     if (s.match(/hier/) != null) {
-                        var url = s.match(/https?:\/\/.+/)[0];
-                        s = s.replace(/::?\s*https?:\/\/.+/, "");
+                        var url = s.match(/https?:\/\/\S+/)[0];
+                        s = s.replace(/::?\s*https?:\/\/\S+/, "");
                         s = s.replace(/hier/, "[hier](" + url + ")");
 
                     } else if (s.match(/Hier/) != null) {
-                        var url = s.match(/https?:\/\/.+/)[0];
-                        s = s.replace(/::?\s*https?:\/\/.+/, "");
+                        var url = s.match(/https?:\/\/\S+/)[0];
+                        s = s.replace(/::?\s*https?:\/\/\S+/, "");
                         s = s.replace(/Hier/, "[Hier](" + url + ")");
 
                     } else {
-                        s = "[" + s;
-                        s = s.replace(/::?\s*http/, "](http");
-                        s = s + ")";
+                        if (s.trim().startsWith("*")) {
+                            s = "Marker123" + s.trim();
+                            s = s.replace(/Marker123(\*+)/, "$1[")
+                        } else {
+                            s = "[" + s;
+                        }
 
+                        s = s.replace(/::?\s*http/, "](http");
+                        if (s.trim().endsWith("*")) {
+                            s = s.trim() + "Marker123";
+                            s = s.replace(/(\*+)Marker123/, ")$1")
+                        } else {
+                            s = s + ")";
+                        }
                     }
                     //console.log(s);
                 }
@@ -194,6 +204,7 @@
             t.value = l.join("\n");
             saveValue(t);
         }
+
 
         function undo() {
             localStorage.setItem("t-" + getCount(), document.getElementById("t").value);
