@@ -26,10 +26,9 @@
     textarea {
         font-family: ' Jost Book', 'Helvetica Neue', sans-serif;
     }
-
 </style>
 
-<body style="background-color: #DDDDDD; font-family: ' Jost Book','Helvetica Neue',sans-serif;">
+<body style=" background-color: #DDDDDD; font-family: ' Jost Book' ,'Helvetica Neue',sans-serif;">
     <table style="width:100%">
         <tr>
             <th>
@@ -51,7 +50,7 @@
 
         </tr>
         <tr>
-            <td><textarea id="t" rows=30 name="text" placeholder="Enter text" style="width:100%; font-size: 14px; " onkeyup='saveValue(this);' onchange='saveValue(this);'></textarea></td>
+            <td><textarea id="t" rows=30 name="text" placeholder="Enter text" style="width:100%; font-size: 14px; " onkeyup='saveValue(this);' onchange='saveValue(this);' onblur="this.focus();" autofocus ng-blur="myFocusFunction()" auto-focus></textarea></td>
         </tr>
         <tr>
             <th>
@@ -285,7 +284,7 @@
             var t = document.getElementById("t");
             var v = t.value;
             var l = v.split("*");
-            t.value = l.join("**").replaceAll(/\*{4,}/g, "**");
+            t.value = l.join("**").replaceAll(/\*{4,}/g, "**").replaceAll(/(\S)\*\*(\S)/g, "$1*$2");
             saveValue(t);
         }
 
@@ -306,8 +305,5 @@
             t.value = v.replaceAll(regex, "\*\*$1\*\*").replaceAll(/([0-9][0-9]?(?::[0-9][0-9])?\s?Uhr)/g, "\*\*$1\*\*");
             saveValue(t);
         }
-
     </script>
-</body>
-
-</html>
+</body></html>
