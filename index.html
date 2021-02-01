@@ -295,7 +295,7 @@
             var t = document.getElementById("t");
             var v = t.value;
             var l = v.split("*");
-            t.value = l.join("**").replaceAll(/\*{4,}/g, "**").replaceAll(/(\S)\*\*)(\S)/g, "$1*$2");
+            t.value = l.join("**").replaceAll(/\*{4,}/g, "**").replaceAll(/(\S)\*\*(\S)/g, "$1*$2");
             saveValue(t);
         }
 
