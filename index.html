@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+<meta charset="UTF-8">
+
+<title>DeliEdit</title>
+<style>
+    button {
+        background-color: #111111;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 2px;
+        cursor: pointer;
+        font-family: ' Jost Book', 'Helvetica Neue', sans-serif;
+    }
+
+    textarea {
+        font-family: ' Jost Book', 'Helvetica Neue', sans-serif;
+    }
+
+</style>
+
+<body style="background-color: #DDDDDD; font-family: ' Jost Book','Helvetica Neue',sans-serif;">
+    <table style="width:100%">
+        <tr>
+            <th>
+
+                <table style="width:100%">
+                    <tr>
+                        <th><button onclick="linkIt();">Verlinkungen umwandeln</button></th>
+                        <th><button onclick="finanzenFormat();">Formatiere Geld</button></th>
+                        <th><button onclick="doppeltFett();">doppelt Fett</button></th>
+                        <th><button onclick="removeEmojis();">entferne Emojis</button></th>
+                        <th><button onclick="datenFett();">Daten fett</button></th>
+                        <th><button onclick="undo();">UNDO ↩️</button></th>
+                        <th><button onclick="redo();">REDO ↪️</button></th>
+                        <th><button onclick="clearHistory();">Historie löschen</button></th>
+                        <th><button onclick="copyTextToClipboard(document.getElementById('t').value);">Alles Kopieren</button></th>
+                    </tr>
+                </table>
+            </th>
+
+        </tr>
+        <tr>
+            <td><textarea id="t" rows=30 name="text" placeholder="Enter text" style="width:100%; font-size: 14px; " onkeyup='saveValue(this);' onchange='saveValue(this);'></textarea></td>
+        </tr>
+        <tr>
+            <th>
+                <table style="width: 100%">
+                    <tr id="copy">
+
+                    </tr>
+                </table>
+            </th>
+        </tr>
+    </table>
+
+    <script>
+        document.getElementById("t").value = getSavedValue("t"); // set the value to this input
+
+        const maxUndo = 128;
+
+
+
+        //Hier in die Liste neue Emojis zum kopieren einfügen, EMOJIS-EINFÜGEN
+        var copyList = ["ℹ️", "1️⃣", "2️⃣", "3️⃣", "💚", "👉", "‼️", "☎️", "📅", "🚨", "❗️", "🔗", ":ehre:", "▶️"];
+
+
+
+        for (var i = 0; i < copyList.length; i++) {
+            copyList[i] = "<th><button onclick=\"copyTextToClipboard('" + copyList[i] + "');\">" + copyList[i] + "</button></th>"
+        }
+
+        var copyTab = document.getElementById("copy")
+        copyTab.innerHTML = copyList.join("\n");
+
+
+
+        function getConfirmation(message) {
+            var retVal = confirm(message);
+            if (retVal == true) {
+                //document.write ("User wants to continue!");
+                return true;
+            } else {
+                //document.write ("User does not want to continue!");
+                return false;
+            }
+        }
+
+        function getCount() {
+            var count;
+            if (!localStorage.getItem("count")) {
+                localStorage.setItem("count", 0);
+                count = 0;
+            } else {
+                count = localStorage.getItem("count");
+            }
+            return count;
+        }
+
+        function countForward() {
+            var count;
+            if (!localStorage.getItem("count")) {
+                localStorage.setItem("count", 0);
+                count = 0;
+            } else {
+                count = localStorage.getItem("count");
+                count++;
+                if (count >= maxUndo) {
+                    count = 0;
+                }
+                localStorage.setItem("count", count);
+            }
+            return count;
+        }
+
+        function countBack() {
+            var count;
+            if (!localStorage.getItem("count")) {
+                localStorage.setItem("count", 0);
+                count = 0;
+            } else {
+                count = localStorage.getItem("count");
+                count--;
+                if (count < 0) {
+                    count = maxUndo - 1;
+                }
+                localStorage.setItem("count", count);
+            }
+            return count;
+        }
+
+
+
+
+        //Save the value function - save it to localStorage as (ID, VALUE)
+        function saveValue(e) {
+            var id = e.id; // get the sender's id to save it . 
+            var val = e.value; // get the value. 
+            var count = countForward();
+
+            localStorage.setItem(id + "-" + count, val); // Every time user writing something, the localStorage's value will override . 
+        }
+
+        //get the saved value function - return the value of "v" from localStorage. 
+        function getSavedValue(v) {
+            var count = getCount();
+            if (!localStorage.getItem(v + "-" + count)) {
+                return ""; // You can change this to your defualt value. 
+            }
+            return localStorage.getItem(v + "-" + count);
+        }
+
+        function linkIt() {
+            var t = document.getElementById("t");
+            var v = t.value;
+            v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\Z)/g, ":$1\n");
+            var l = v.split("\n");
+            for (var i = 0; i < l.length; i++) {
+                var s = l[i];
+                if (s.match(/.+:\s*https?:\/\/.+/) != null) {
+                    if (s.match(/hier/) != null) {
+                        var url = s.match(/https?:\/\/.+/)[0];
+                        s = s.replace(/::?\s*https?:\/\/.+/, "");
+                        s = s.replace(/hier/, "[hier](" + url + ")");
+
+                    } else if (s.match(/Hier/) != null) {
+                        var url = s.match(/https?:\/\/.+/)[0];
+                        s = s.replace(/::?\s*https?:\/\/.+/, "");
+                        s = s.replace(/Hier/, "[Hier](" + url + ")");
+
+                    } else {
+                        s = "[" + s;
+                        s = s.replace(/::?\s*http/, "](http");
+                        s = s + ")";
+
+                    }
+                    //console.log(s);
+                }
+                //console.log(s);
+                l[i] = s;
+            }
+
+
+
+            t.value = l.join("\n");
+            saveValue(t);
+        }
+
+        function undo() {
+            localStorage.setItem("t-" + getCount(), document.getElementById("t").value);
+            var count = countBack();
+            document.getElementById("t").value = localStorage.getItem("t-" + count);
+            if (!localStorage.getItem("undos")) {
+                localStorage.setItem("undos", 1);
+            } else {
+                localStorage.setItem("undos", localStorage.getItem("undos") + 1);
+            }
+        }
+
+        function redo() {
+            if (localStorage.getItem("undos") && (localStorage.getItem("undos") > 0)) {
+                var count = countForward();
+                document.getElementById("t").value = localStorage.getItem("t-" + count);
+                localStorage.setItem("undos", localStorage.getItem("undos") - 1);
+            }
+        }
+
+        function clearHistory() {
+            if (getConfirmation("Willst du wirklich deine Undo-History löschen?")) {
+                localStorage.clear();
+            }
+
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                var successful = document.execCommand('copy');
+                var msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Fallback: Copying text command was ' + msg);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        function copyTextToClipboard(text) {
+            if (!navigator.clipboard) {
+                fallbackCopyTextToClipboard(text);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(function() {
+                console.log('Async: Copying to clipboard was successful!');
+            }, function(err) {
+                console.error('Async: Could not copy text: ', err);
+            });
+        }
+
+        function finanzenFormat() {
+            var t = document.getElementById("t");
+            var v = t.value;
+            var l = v.split("\n");
+            for (var i = 0; i < l.length; i++) {
+                var ll = l[i].split(" ");
+                for (var j = 0; j < ll.length; j++) {
+                    var s = ll[j];
+                    if (s.match(/[0-9]([0-9]|(\.)|,)*€/gm) != null) {
+                        s = "`" + s + "`";
+                    }
+                    //console.log(s);
+                    ll[j] = s;
+                }
+                l[i] = ll.join(" ");
+            }
+
+            t.value = l.join("\n");
+            saveValue(t);
+        }
+
+
+
+        function doppeltFett() {
+            var t = document.getElementById("t");
+            var v = t.value;
+            var l = v.split("*");
+            t.value = l.join("**").replaceAll(/\*{4,}/g, "**");
+            saveValue(t);
+        }
+
+        function removeEmojis() {
+            var regex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
+
+            var t = document.getElementById("t");
+            var v = t.value;
+            t.value = v.replaceAll(regex, '');;
+            saveValue(t);
+        }
+
+        function datenFett() {
+            var regex = /([0-9][0-9]?\.[0-9][0-9]?(?:\.[0-9]*)?)/g
+
+            var t = document.getElementById("t");
+            var v = t.value;
+            t.value = v.replaceAll(regex, "\*\*$1\*\*").replaceAll(/([0-9][0-9]?(?::[0-9][0-9])?\s?Uhr)/g, "\*\*$1\*\*");
+            saveValue(t);
+        }
+
+    </script>
+</body>
+
+</html>
