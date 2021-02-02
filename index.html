@@ -9,57 +9,86 @@
 <title>MatterEdit</title>
 <style>
     button {
-        background-color: #111111;
-        border: none;
+        background-color: #444444;
+        background-image: linear-gradient(#505050, #404040);
+        border: solid;
         border-radius: 5px;
         color: white;
         padding: 12px;
         text-align: center;
         text-decoration: none;
-        display: inline-block;
+        /*display: inline-block;*/
         font-size: 16px;
-        margin: 2px;
+        margin: 1px;
         cursor: pointer;
         font-family: ' Jost Book', 'Helvetica Neue', sans-serif;
+        border-color: #000000;
+        border-image: linear-gradient(#000000, #070707);
+        border-width: 3px;
+        transition-duration: 0.2s;
+        display: block;
+    }
+
+    button:hover {
+        background-color: #111111;
+        background-image: linear-gradient(#101010, #202020);
+    }
+
+    button:active {
+        background-color: #AAAAAA;
+        background-image: linear-gradient(#BBBBBB, #AAAAAA);
+        border-image: linear-gradient(#222222, #333333);
+    }
+
+    td {
+        text-align: center;
     }
 
     textarea {
         font-family: ' Jost Book', 'Helvetica Neue', sans-serif;
+        border: none;
+        border-color: #DDDDDD;
+        border-radius: 7px;
+        background-image: linear-gradient(#FFFFFF, #F0F0F0)
+    }
+
+    body {
+        background-image: linear-gradient(#C0C0C0, #A0A0A0, #C0C0C0);
     }
 </style>
 
-<body style=" background-color: #DDDDDD; font-family: ' Jost Book' ,'Helvetica Neue',sans-serif;">
+<body style=" background-color: #EEEEEE; font-family: ' Jost Book' ,'Helvetica Neue',sans-serif;">
     <table style="width:100%">
         <tr>
-            <th>
+            <td>
 
                 <table style="width:100%">
                     <tr>
-                        <th><button onclick="linkIt();">Verlinkungen umwandeln</button></th>
-                        <th><button onclick="finanzenFormat();">Formatiere Geld</button></th>
-                        <th><button onclick="doppeltFett();">doppelt Fett</button></th>
-                        <th><button onclick="removeEmojis();">entferne Emojis</button></th>
-                        <th><button onclick="datenFett();">Daten fett</button></th>
-                        <th><button onclick="undo();">UNDO ↩️</button></th>
-                        <th><button onclick="redo();">REDO ↪️</button></th>
-                        <th><button onclick="clearHistory();">Historie löschen</button></th>
-                        <th><button onclick="copyTextToClipboard(document.getElementById('t').value);">Alles Kopieren</button></th>
+                        <td><button onclick="linkIt();">Verlinkungen umwandeln</button></td>
+                        <td><button onclick="finanzenFormat();">Formatiere Geld</button></td>
+                        <td><button onclick="doppeltFett();">doppelt Fett</button></td>
+                        <td><button onclick="removeEmojis();">entferne Emojis</button></td>
+                        <td><button onclick="datenFett();">Daten fett</button></td>
+                        <td><button onclick="undo();">UNDO ↩️</button></td>
+                        <td><button onclick="redo();">REDO ↪️</button></td>
+                        <td><button onclick="clearHistory();">Historie löschen</button></td>
+                        <td><button onclick="copyTextToClipboard(document.getElementById('t').value);">Alles Kopieren</button></td>
                     </tr>
                 </table>
-            </th>
+            </td>
 
         </tr>
         <tr>
             <td><textarea id="t" rows=30 name="text" placeholder="Enter text" style="width:100%; font-size: 14px; " onkeyup='saveValue(this);' onchange='saveValue(this);' onblur="this.focus();" autofocus ng-blur="myFocusFunction()" auto-focus></textarea></td>
         </tr>
         <tr>
-            <th>
+            <td>
                 <table style="width: 100%">
                     <tr id="copy">
 
                     </tr>
                 </table>
-            </th>
+            </td>
         </tr>
     </table>
 
@@ -76,7 +105,7 @@
 
 
         for (var i = 0; i < copyList.length; i++) {
-            copyList[i] = "<th><button onclick=\"copyTextToClipboard('" + copyList[i] + "');\">" + copyList[i] + "</button></th>"
+            copyList[i] = "<td><button onclick=\"copyTextToClipboard('" + copyList[i] + "');\">" + copyList[i] + "</button></td>"
         }
 
         var copyTab = document.getElementById("copy")
