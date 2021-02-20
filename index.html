@@ -104,6 +104,8 @@
         //Hier in die Liste neue Emojis zum kopieren einfügen, EMOJIS-EINFÜGEN
         var copyList = ["ℹ️", "▶️", "➡️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "💚", "👉", "‼️", "❗️", "☎️", "📅", "🚨", "🔗", ":ehre:"];
 
+        //Hier Keywords für das automatische verlinken einfügen
+        var linkItKeyWords = ["Hier", "hier", "dieses Formular", "diesem Link"];
 
 
         for (var i = 0; i < copyList.length; i++) {
@@ -190,6 +192,43 @@
             return localStorage.getItem(v + "-" + count);
         }
 
+        function linkItKeyWordHelper(s) {
+            console.log("1.-----" + s)
+            var url = s.match(/https?:\/\/\S+/)[0];
+            console.log("2. url-----" + url)
+            var sufix = "";
+            //versuch Bild einzubinden, sieht aber doof aus
+            /*if (url.endsWith(".png") || url.endsWith(".jpg")) {
+                sufix = "!";
+            }*/
+            for (var i in linkItKeyWords) {
+                var keyword = linkItKeyWords[i];
+                var keywordRegex = new RegExp(keyword);
+                if (s.match(keywordRegex) != null) {
+                    console.log(keywordRegex);
+                    s = s.replace(/::?\s*https?:\/\/\S+/, "");
+                    s = s.replace(keywordRegex, sufix + "[" + keyword + "](" + url + ")");
+                    console.log(s);
+                    return s;
+                }
+            }
+            if (s.trim().startsWith("*")) {
+                s = "Marker123" + s.trim();
+                s = s.replace(/Marker123(\*+)/, "$1" + sufix + "[")
+            } else {
+                s = sufix + "[" + s;
+            }
+
+            s = s.replace(/::?\s*http/, "](http");
+            if (s.trim().endsWith("*")) {
+                s = s.trim() + "Marker123";
+                s = s.replace(/(\*+)Marker123/, ")$1")
+            } else {
+                s = s + ")";
+            }
+            return s;
+        }
+
         function linkIt(text) {
             var v = text
             v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\z)\s?/g, ":$1\n");
@@ -197,32 +236,8 @@
             for (var i = 0; i < l.length; i++) {
                 var s = l[i];
                 if (s.match(/.+:\s*https?:\/\/\S+\**/) != null) {
-                    if (s.match(/hier/) != null) {
-                        var url = s.match(/https?:\/\/\S+/)[0];
-                        s = s.replace(/::?\s*https?:\/\/\S+/, "");
-                        s = s.replace(/hier/, "[hier](" + url + ")");
+                    s = linkItKeyWordHelper(s);
 
-                    } else if (s.match(/Hier/) != null) {
-                        var url = s.match(/https?:\/\/\S+/)[0];
-                        s = s.replace(/::?\s*https?:\/\/\S+/, "");
-                        s = s.replace(/Hier/, "[Hier](" + url + ")");
-
-                    } else {
-                        if (s.trim().startsWith("*")) {
-                            s = "Marker123" + s.trim();
-                            s = s.replace(/Marker123(\*+)/, "$1[")
-                        } else {
-                            s = "[" + s;
-                        }
-
-                        s = s.replace(/::?\s*http/, "](http");
-                        if (s.trim().endsWith("*")) {
-                            s = s.trim() + "Marker123";
-                            s = s.replace(/(\*+)Marker123/, ")$1")
-                        } else {
-                            s = s + ")";
-                        }
-                    }
                     //console.log(s);
                 }
                 //console.log(s);
