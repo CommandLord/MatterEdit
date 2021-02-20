@@ -17,3 +17,5 @@ Ein kleiner Editor um Nachrichten für Mattermost an zu passen.
  - Undo und Redo mit Historie
  - kompletten Text kopieren
  - Emojis in die Zwischenablage packen
+ - Zitate einfügen
+ - die Aktionen werden wenn ein Textbereich ausgewählt ist nur auf diesen angewendet
