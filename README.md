@@ -19,3 +19,4 @@ Ein kleiner Editor um Nachrichten für Mattermost an zu passen.
  - Emojis in die Zwischenablage packen
  - Zitate einfügen
  - die Aktionen werden wenn ein Textbereich ausgewählt ist nur auf diesen angewendet
+ - Deli Magic hat den Ansatz, dass im optimal fall nur auf den Button gedrückt werden muss und schon die Nachricht fertig formatiert ist, dies ist natürlich nicht immer der Fall aber die Utopie auf die hingearbeitet wird
