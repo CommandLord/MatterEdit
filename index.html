@@ -65,16 +65,17 @@
 
                 <table style="width:100%">
                     <tr>
-                        <td><button onclick="execute(linkIt);">Verlinkungen umwandeln</button></td>
-                        <td><button onclick="execute(finanzenFormat);">Formatiere Geld</button></td>
-                        <td><button onclick="execute(doppeltFett);">doppelt Fett</button></td>
-                        <td><button onclick="execute(removeEmojis);">entferne Emojis</button></td>
-                        <td><button onclick="execute(datenFett);">Daten fett</button></td>
-                        <td><button onclick="execute(quotify);">Quotify</button></td>
-                        <td><button onclick="undo();">UNDO ↩️</button></td>
-                        <td><button onclick="redo();">REDO ↪️</button></td>
-                        <td><button onclick="clearHistory();">Historie löschen</button></td>
-                        <td><button onclick="copyTextToClipboard(document.getElementById('t').value);">Alles Kopieren</button></td>
+                        <td><button onclick="execute(linkIt);">🔗<br>verlinken</button></td>
+                        <td><button onclick="execute(finanzenFormat);">💵<br>Geld formatiern</button></td>
+                        <td><button onclick="execute(doppeltFett);">**𝗙**<br>doppelt Fett</button></td>
+                        <td><button onclick="execute(removeEmojis);">🚫<br>entferne Emojis</button></td>
+                        <td><button onclick="execute(datenFett);">📅<br>Daten fett</button></td>
+                        <td><button onclick="execute(quotify);">"Q"<br>Quotify</button></td>
+                        <td><button onclick="execute(deliMagic);">✨<br>Deli Magic</button></td>
+                        <td><button onclick="undo();">↩️<br>UNDO</button></td>
+                        <td><button onclick="redo();">↪️<br>REDO</button></td>
+                        <td><button onclick="clearHistory();">❌<br>Historie löschen</button></td>
+                        <td><button onclick="copyTextToClipboard(document.getElementById('t').value);">↗️<br>Alles Kopieren</button></td>
                     </tr>
                 </table>
             </td>
@@ -102,7 +103,7 @@
 
 
         //Hier in die Liste neue Emojis zum kopieren einfügen, EMOJIS-EINFÜGEN
-        var copyList = ["ℹ️", "▶️", "➡️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "💚", "👉", "‼️", "❗️", "☎️", "📅", "🚨", "🔗", ":ehre:"];
+        var copyList = ["ℹ️", "▶️", "➡️", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "💚", "👉", "‼️", "❗️", "☎️", "📅", "🚨", "🔗", ":ehre:", "---"];
 
         //Hier Keywords für das automatische verlinken einfügen
         var linkItKeyWords = ["Hier", "hier", "dieses Formular", "diesem Link"];
@@ -129,8 +130,40 @@
             }
         }
 
+        //appends two regexes
+        function apRe(a, b) {
+            var flags = (a.flags + b.flags).split("").sort().join("").replace(/(.)(?=.*\1)/g, "");
+            return new RegExp(a.source + b.source, flags);
+        }
+
+        function apRes(list) {
+            var newReg = list[0];
+            for (var i = 1; i < list.length; i++) {
+                newReg = apRe(newReg, list[i]);
+            }
+            return newReg;
+        }
+
+        function removeLinesWith(text, reg) {
+            var lines = text.split(/(\n|\/n)/);
+            for (var i = 0; i < lines.length; i++) {
+                if (lines[i].match(reg) || lines[i].match(/(\n|\/n)/)) {
+                    console.log("weg" + lines.splice(i, 1));
+                    i--;
+                }
+            }
+
+            return lines.join("\n");
+        }
 
 
+        function removeLinesWithMulit(text, list) {
+            var output = text;
+            for (var i = 0; i < list.length; i++) {
+                output = removeLinesWith(output, list[i]);
+            }
+            return output;
+        }
 
 
 
@@ -236,6 +269,7 @@
 
         function linkItKeyWordHelper(s) {
             var url = s.match(/https?:\/\/\S+/)[0];
+            var delimiter = /:?\s*(\*{0,2})\s*/;
             var sufix = "";
             //versuch Bild einzubinden, sieht aber doof aus
             /*if (url.endsWith(".png") || url.endsWith(".jpg")) {
@@ -245,7 +279,7 @@
                 var keyword = linkItKeyWords[i];
                 var keywordRegex = new RegExp(keyword);
                 if (s.match(keywordRegex) != null) {
-                    s = s.replace(/::?\s*https?:\/\/\S+/, "");
+                    s = s.replace(apRes([/:/, delimiter, /https?:\/\/\S+/]), "");
                     s = s.replace(keywordRegex, sufix + "[" + keyword + "](" + url + ")");
                     return s;
                 }
@@ -257,7 +291,7 @@
                 s = sufix + "[" + s;
             }
 
-            s = s.replace(/::?\s*http/, "](http");
+            s = s.replace(apRes([/:/, delimiter, /http/]), "$1](http");
             if (s.trim().endsWith("*")) {
                 s = s.trim() + "Marker123";
                 s = s.replace(/(\*+)Marker123/, ")$1")
@@ -271,9 +305,11 @@
             var v = text
             v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\z)\s?/g, ":$1\n");
             var l = v.split("\n");
+            console.log(l.length)
             for (var i = 0; i < l.length; i++) {
+                console.log("i: " + i);
                 var s = l[i];
-                if (s.match(/.+:\s*https?:\/\/\S+\**/) != null) {
+                if (l[i].match(/:\s*https?:\/\/\S+/) != null) {
                     s = linkItKeyWordHelper(s);
 
                 }
@@ -358,7 +394,7 @@
         }
 
         function datenFett(text) {
-            var regex = /(\s)([0-9][0-9]?\.(?:[0-9][0-9]?|\s?(?:Jan|Feb|Mär|Apr|Mai|Jun|Jul|Aug|Sep|Sept|Oct|Okt|Nov|Dez)\.?\s?|\s?(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s?)(?:\.?[0-9]{2,3})?)\s/g
+            var regex = /(\s)([0-9][0-9]?\.(?:[0-9][0-9]?|\s?(?:Jan|Feb|Mär|Apr|Mai|Jun|Jul|Aug|Sep|Sept|Oct|Okt|Nov|Dez)\.?\s?|\s?(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s?)(?:\.?[0-9]{2,4})?)\s/g
             var v = text;
             return v.replaceAll(regex, "$1\*\*$2\*\*").replaceAll(/([0-9][0-9]?(?::[0-9][0-9])?\s?Uhr)/g, "\*\*$1\*\*").replaceAll(/\*{4,}/g, "**");
         }
@@ -369,6 +405,34 @@
             return text
         }
 
+        function autoHeading(text) {
+            var typesReg = /(Ergebnisse der Abstimmung|Eilabstimmung|Information|Termin|TK|Info|Abstimmungsergebinss|Abstimmung|Antrag|Anträge)/;
+
+            var lines = text.split("\n");
+            var heading = lines[0];
+            heading = removeEmojis(heading);
+            if (heading.match(/(Eilabstimmung)/) != null && heading.match(/(Ergebniss)/) == null) {
+                heading = "🚨" + heading;
+            }
+
+
+
+            heading = heading.replaceAll(/\*/g, "");
+            heading = "#### * " + heading + "*";
+            lines[0] = heading;
+            return lines.join("\n");
+
+        }
+
+        function deliMagic(text) {
+            text = removeLinesWithMulit(text, [/https?:\/\/wa.me/, /https?:\/\/t.me/, /\+49[0-9]{4,}/, /Liebe Grüße/, /Eure.*AG/, /Eure CTF/, /Kontakt/, /Ansprechperson/, /Liebe OGs/, /Hallo( |,)/]);
+            text = autoHeading(text);
+            text = doppeltFett(text);
+            text = linkIt(text);
+            text = datenFett(text);
+            text = finanzenFormat(text);
+            return text;
+        }
 
 
         //execute
