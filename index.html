@@ -416,6 +416,7 @@
             }
 
 
+            heading = heading.replace(typesReg, "[$1]");
 
             heading = heading.replaceAll(/\*/g, "");
             heading = "#### * " + heading + "*";
@@ -424,10 +425,16 @@
 
         }
 
+        function clusterLinks(text) {
+            //TODO
+            return text;
+        }
+
         function deliMagic(text) {
             text = removeLinesWithMulit(text, [/https?:\/\/wa.me/, /https?:\/\/t.me/, /\+49[0-9]{4,}/, /Liebe Grüße/, /Eure.*AG/, /Eure CTF/, /Kontakt/, /Ansprechperson/, /Liebe OGs/, /Hallo( |,)/]);
             text = autoHeading(text);
             text = doppeltFett(text);
+            text = clusterLinks(text);
             text = linkIt(text);
             text = datenFett(text);
             text = finanzenFormat(text);
