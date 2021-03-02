@@ -297,6 +297,17 @@
             var url = s.match(/https?:\/\/\S+/)[0];
             var delimiter = /:?\s*(\**)\s*/;
             var sufix = "";
+            var shortenReg = /^((H|h)ier ((nochmal)? (der|die|das)|der Link (zur|zum)))/gm;
+            var shortResult = removeEmojis(s.trim()).trim().match(shortenReg);
+            console.log(removeEmojis(s.trim()));
+            if (shortResult) {
+                console.log("In:", s);
+                s = s.trim();
+                s = removeEmojis(s);
+                s = s.trim().replace(shortenReg, "").trim();
+                console.log("out:", s);
+                //retrun s;
+            }
             //versuch Bild einzubinden, sieht aber doof aus
             /*if (url.endsWith(".png") || url.endsWith(".jpg")) {
                 sufix = "!";
@@ -311,19 +322,23 @@
                 }
             }
             if (s.trim().startsWith("*") || deFArr[0].match(/\*/)) {
-                s = s.replace(/^(\**)/, "$1" + sufix + "[");
+                s = s.replace(/^(\**) ?/, "$1" + sufix + "[");
                 var endForm = s.match(apRes([/:/, delimiter, /http/]));
                 s = s.replace(apRes([/:/, delimiter, /http/]), "](http");
                 if (endForm) {
                     s = s + ")" + endForm[1];
+                } else {
+                    s = s + ")";
                 }
 
             } else {
-                s = sufix + "[" + s;
+                s = sufix + "[" + s.trim();
                 s = s.replace(apRes([/:/, delimiter, /http/]), "$1](http");
                 s = s + ")";
 
             }
+
+            s = s.replaceAll(/\[\s/g, "[").replace(/\s\]/g, "]");
 
             return s;
         }
@@ -340,9 +355,7 @@
             var v = text
             v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\z)\s?/g, ":$1\n");
             var l = v.split("\n");
-            console.log(l.length)
             for (var i = 0; i < l.length; i++) {
-                console.log("i: " + i);
                 var s = l[i];
                 if (l[i].match(apRes([/:/, delimiter, /https?:\/\/\S+/])) != null) {
                     var deFormated = deformatLine(s);
@@ -450,14 +463,21 @@
             var heading = lines[0];
             heading = removeEmojis(heading);
             heading = heading.replace("–>", "");
-            if (heading.match(/(Eilabstimmung)/) != null && heading.match(/(Ergebniss)/) == null) {
-                heading = "🚨" + heading;
-            }
 
+            console.log("nö");
 
             heading = heading.replace(typesReg, "[$1]");
 
+            //console.log(heading.match(/\]\s(?:(?:[üöäß]|[a-z])+\s)*([A-Z]|[ÜÖÄ])/gm));
+            heading = heading.replace(/\]\s(?:(?:[üöäß]|[a-z])+\s)*([A-Z]|[ÜÖÄ])/gm, "] $1");
+            //console.log(heading.match(/(?:(?:[a-zA-Z]|[üöäÜÖÄß])+\s)*\[/gm));
+            heading = heading.replace(/(?:(?:[a-zA-Z]|[üöäÜÖÄß])+\s)*\[/gm, "[");
+
+            if (heading.match(/(Eilabstimmung)/) != null && heading.match(/(Ergebniss)/) == null) {
+                heading = "🚨" + heading;
+            }
             heading = heading.replaceAll(/\*/g, "");
+            heading = heading.replace(/_(.+)_/, "$1");
             heading = "#### " + heading;
             lines[0] = heading;
             return lines.join("\n");
@@ -468,7 +488,7 @@
             var lines = text.split("\n");
             var cluster = [];
             for (var i = lines.length - 1; 0 <= i; i--) {
-                var line = lines[i];
+                var line = removeEmojis(lines[i]);
                 if (line.match(/^\s*$/) || line == "" || line == null) {
                     lines.splice(i, 1);
                 } else {
