@@ -166,6 +166,32 @@
         }
 
 
+        function deformatLine(line) {
+            var preFix = "";
+            var surFix = "";
+
+            var preReg = /^((?: |-|\*|_|>|•|#)*)/;
+            var surReg = /((?: |\*|_)*)$/;
+
+            if (line.match(preReg)) {
+                preFix = line.match(preReg)[0];
+                line = line.replace(preFix, "");
+            }
+
+
+            if (line.match(surReg)) {
+                surFix = line.match(surReg)[0];
+                line = line.replace(surFix, "");
+            }
+
+            var prLiSuFix = [preFix, line, surFix];
+
+            return prLiSuFix;
+        }
+
+        function reformatLine(array, newLine) {
+            return array[0] + newLine + array[array.length - 1];
+        }
 
 
 
@@ -267,9 +293,9 @@
 
         //funktionen
 
-        function linkItKeyWordHelper(s) {
+        function linkItKeyWordHelper(s, deFArr) {
             var url = s.match(/https?:\/\/\S+/)[0];
-            var delimiter = /:?\s*(\*{0,2})\s*/;
+            var delimiter = /:?\s*(\**)\s*/;
             var sufix = "";
             //versuch Bild einzubinden, sieht aber doof aus
             /*if (url.endsWith(".png") || url.endsWith(".jpg")) {
@@ -284,24 +310,33 @@
                     return s;
                 }
             }
-            if (s.trim().startsWith("*")) {
-                s = "Marker123" + s.trim();
-                s = s.replace(/Marker123(\*+)/, "$1" + sufix + "[")
+            if (s.trim().startsWith("*") || deFArr[0].match(/\*/)) {
+                s = s.replace(/^(\**)/, "$1" + sufix + "[");
+                var endForm = s.match(apRes([/:/, delimiter, /http/]));
+                s = s.replace(apRes([/:/, delimiter, /http/]), "](http");
+                if (endForm) {
+                    s = s + ")" + endForm[1];
+                }
+
             } else {
                 s = sufix + "[" + s;
+                s = s.replace(apRes([/:/, delimiter, /http/]), "$1](http");
+                s = s + ")";
+
             }
 
-            s = s.replace(apRes([/:/, delimiter, /http/]), "$1](http");
-            if (s.trim().endsWith("*")) {
-                s = s.trim() + "Marker123";
-                s = s.replace(/(\*+)Marker123/, ")$1")
-            } else {
-                s = s + ")";
-            }
             return s;
         }
 
         function linkIt(text) {
+            if (!text.match(/\n/) && !text.match(/http/)) {
+                var url = prompt("Bitte trag die Adresse ein:", "");
+                if (url != "" && url != null) {
+                    text = "[" + text + "]" + "(" + url + ")";
+                }
+                return text;
+            }
+            var delimiter = /:?\s*(\**)\s*/;
             var v = text
             v = v.replaceAll(/\n(https?:\/\/\S+)(?:\n|\z)\s?/g, ":$1\n");
             var l = v.split("\n");
@@ -309,8 +344,9 @@
             for (var i = 0; i < l.length; i++) {
                 console.log("i: " + i);
                 var s = l[i];
-                if (l[i].match(/:\s*https?:\/\/\S+/) != null) {
-                    s = linkItKeyWordHelper(s);
+                if (l[i].match(apRes([/:/, delimiter, /https?:\/\/\S+/])) != null) {
+                    var deFormated = deformatLine(s);
+                    s = reformatLine(deFormated, linkItKeyWordHelper(deFormated[1], deFormated));
 
                 }
                 l[i] = s;
@@ -419,23 +455,44 @@
             heading = heading.replace(typesReg, "[$1]");
 
             heading = heading.replaceAll(/\*/g, "");
-            heading = "#### * " + heading + "*";
+            heading = "#### " + heading;
             lines[0] = heading;
             return lines.join("\n");
 
         }
 
         function clusterLinks(text) {
-            //TODO
-            return text;
+            var lines = text.split("\n");
+            var cluster = [];
+            for (var i = lines.length - 1; 0 <= i; i--) {
+                var line = lines[i];
+                if (line.match(/^\s*$/) || line == "" || line == null) {
+                    lines.splice(i, 1);
+                } else {
+                    var deformed = deformatLine(line);
+                    if (deformed[1].match(/^\[.*\]\(http.*\)$/)) {
+                        cluster.push(line);
+                        lines.splice(i, 1);
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            if (cluster.length > 0) {
+                lines.push("");
+                lines.push("🔗 " + cluster.join(" | "));
+            }
+            lines.push("");
+            return lines.join("\n");
         }
 
         function deliMagic(text) {
             text = removeLinesWithMulit(text, [/https?:\/\/wa.me/, /https?:\/\/t.me/, /\+49[0-9]{4,}/, /Liebe Grüße/, /Eure.*AG/, /Eure CTF/, /Kontakt/, /Ansprechperson/, /Liebe OGs/, /Hallo( |,)/]);
             text = autoHeading(text);
             text = doppeltFett(text);
-            text = clusterLinks(text);
             text = linkIt(text);
+            text = clusterLinks(text);
             text = datenFett(text);
             text = finanzenFormat(text);
             return text;
