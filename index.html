@@ -430,11 +430,19 @@
 
 
         function doppeltFett(text) {
+            var input = text;
+
             var nopeReg1 = /(\S)\*\*(In|in|Innen|innen|er|e|r|n)(\s|\.|,|$)/g;
             var nopeReg2 = /(\s|^)(Finta|FINTA|Flinta|FLINTA)\*\*(\s|\.|,|$)/g;
             var v = text;
             var l = v.split("*");
-            return l.join("**").replaceAll(/\*{4,}/g, "**").replaceAll(nopeReg1, "$1*$2$3").replaceAll(nopeReg2, "$1$2*$3");
+            var output = l.join("**").replaceAll(/\*{4,}/g, "**").replaceAll(nopeReg1, "$1*$2$3").replaceAll(nopeReg2, "$1$2*$3");
+
+            if (!text.match(/\*\*/) && input == output && !text.match(/\n/)) {
+                return "**" + text + "**";
+            }
+
+            return output;
         }
 
 
